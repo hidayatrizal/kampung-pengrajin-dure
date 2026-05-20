@@ -1,0 +1,21 @@
+
+   InvalidArgumentException 
+
+  Unexpected end of input
+
+  at D:\Project Laravel\desa-pengrajin-dure\vendor\psy\psysh\src\Shell.php:1475
+    1471▕ 
+    1472▕         if (!$this->hasValidCode()) {
+    1473▕             $this->popCodeStack();
+    1474▕ 
+  ➜ 1475▕             throw new \InvalidArgumentException('Unexpected end of input');
+    1476▕         }
+    1477▕     }
+    1478▕ 
+    1479▕     /**
+
+  1   D:\Project Laravel\desa-pengrajin-dure\vendor\psy\psysh\src\Shell.php:2173
+      Psy\Shell::setCode("'App\Models\Product::distinct()-")
+
+  2   D:\Project Laravel\desa-pengrajin-dure\vendor\laravel\tinker\src\Console\TinkerCommand.php:77
+      Psy\Shell::execute("'App\Models\Product::distinct()-")
