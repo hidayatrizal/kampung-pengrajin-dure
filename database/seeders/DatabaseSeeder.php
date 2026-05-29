@@ -54,15 +54,25 @@ class DatabaseSeeder extends Seeder
         $craftsmen = [
             [
                 'name' => 'Bapak Karsa',
-                'role' => 'Ahli Anyaman Bambu',
                 'image' => 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop',
-                'quote' => 'Kesabaran adalah pola yang paling indah dalam setiap kerajinan tangan.',
+                'description' => 'Ahli Anyaman Bambu dengan pengalaman lebih dari 20 tahun.',
+                'address' => 'Desa Dure, Jawa Tengah',
+                'latitude' => -7.8000000,
+                'longitude' => 110.3000000,
+                'capacity' => 10,
+                'price' => 'Rp 500.000',
+                'wa' => '6281234567890',
             ],
             [
                 'name' => 'Ibu Murni',
-                'role' => 'Kurator Tekstil Alami',
                 'image' => 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=800&auto=format&fit=crop',
-                'quote' => 'Warna yang berasal dari alam tidak akan pernah pudar oleh waktu.',
+                'description' => 'Kurator Tekstil Alami yang berpairot pada motif tradisional.',
+                'address' => 'Desa Dure, Jawa Tengah',
+                'latitude' => -7.8050000,
+                'longitude' => 110.3050000,
+                'capacity' => 8,
+                'price' => 'Rp 400.000',
+                'wa' => '6281234567890',
             ],
         ];
 

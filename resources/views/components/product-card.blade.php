@@ -1,6 +1,6 @@
 <div class="group flex flex-col h-full bg-white dark:bg-stone-900 transition-all duration-700 hover:shadow-[0_2px_40px_-8px_rgba(120,53,15,0.15)]">
     <div class="relative aspect-[4/5] overflow-hidden">
-        <img src="{{ Storage::url($product->image) }}" alt="{{ $product->name }}" class="w-full h-full object-cover transition-all duration-1000 group-hover:scale-105 saturate-100 group-hover:saturate-110">
+        <img src="{{ $product->image }}" alt="{{ $product->name }}" class="w-full h-full object-cover transition-all duration-1000 group-hover:scale-105 saturate-100 group-hover:saturate-110">
         <div class="absolute inset-0 bg-gradient-to-t from-stone-900/60 via-stone-900/0 to-stone-900/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 md:block hidden"></div>
         @if($product->craftsman)
         <div class="absolute top-5 left-5">

@@ -7,14 +7,18 @@
 
 <main class="overflow-x-hidden">
     {{-- Hero Section --}}
-    <section class="hero-section relative min-h-screen flex items-center overflow-hidden">
-        <div class="absolute inset-0">
-            <img src="/hero.png" alt="Desa Pengrajin Genteng" class="w-full h-full object-cover hero-img">
+    <section class="hero-section relative min-h-screen flex items-center overflow-hidden bg-cream-50 dark:bg-stone-950">
+        {{-- Hero background image with WebP support for fast loading --}}
+        <div class="absolute inset-0 overflow-hidden">
+            <picture>
+                <source srcset="/hero.webp" type="image/webp">
+                <img src="/hero.png" alt="Desa Pengrajin Genteng" class="w-full h-full object-cover hero-img" fetchpriority="high" style="filter: hue-rotate(5deg) saturate(1.08)">
+            </picture>
         </div>
 
-        {{-- Gradient overlay --}}
-        <div class="absolute inset-0 bg-gradient-to-r from-cream-50 dark:from-stone-950 via-cream-50/85 dark:via-stone-950/90 to-cream-50/15 lg:to-transparent dark:to-stone-950/30 lg:dark:to-transparent"></div>
-        <div class="absolute inset-0 bg-gradient-to-t from-cream-50 dark:from-stone-950 via-transparent to-cream-50/30 dark:to-stone-950/20 lg:hidden"></div>
+        {{-- Gradient overlay with extended warm coverage to neutralize cool tones --}}
+        <div class="absolute inset-0 bg-gradient-to-r from-cream-50 dark:from-stone-950 from-10% via-cream-50/85 dark:via-stone-950/90 via-40% to-cream-50/20 dark:to-stone-950/35 to-95%"></div>
+        <div class="absolute inset-0 bg-gradient-to-t from-cream-50 dark:from-stone-950 via-cream-50/40 dark:via-stone-950/40 via-40% to-transparent to-70% lg:hidden"></div>
 
         {{-- Content --}}
         <div class="relative z-10 w-full pl-5 md:pl-10 lg:pl-14 xl:pl-20 pr-8 md:pr-16 lg:pr-24 py-32 lg:py-0">

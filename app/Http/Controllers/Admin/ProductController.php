@@ -13,7 +13,7 @@ class ProductController extends Controller
 {
     public function index()
     {
-        $products = Product::with(['craftsman', 'images'])->orderBy('id', 'desc')->get();
+        $products = Product::with(['craftsman', 'images'])->orderBy('id', 'desc')->paginate(20);
         return view('admin.products.index', compact('products'));
     }
 
@@ -37,16 +37,18 @@ class ProductController extends Controller
         ]);
 
         if ($request->hasFile('image')) {
-            $validated['image'] = $request->file('image')->store('products', 'public');
+            $path = $request->file('image')->store('products', 'public');
+            $validated['image'] = $path;
         }
 
         $product = Product::create($validated);
 
         if ($request->hasFile('additional_images')) {
             foreach ($request->file('additional_images') as $index => $file) {
+                $path = $file->store('products', 'public');
                 ProductImage::create([
                     'product_id' => $product->id,
-                    'image' => $file->store('products', 'public'),
+                    'image' => $path,
                     'sort_order' => $index,
                 ]);
             }
@@ -80,16 +82,18 @@ class ProductController extends Controller
             if ($product->image && Storage::disk('public')->exists($product->image)) {
                 Storage::disk('public')->delete($product->image);
             }
-            $validated['image'] = $request->file('image')->store('products', 'public');
+            $path = $request->file('image')->store('products', 'public');
+            $validated['image'] = Storage::url($path);
         }
 
         $product->update($validated);
 
         if ($request->hasFile('additional_images')) {
             foreach ($request->file('additional_images') as $index => $file) {
+                $path = $file->store('products', 'public');
                 ProductImage::create([
                     'product_id' => $product->id,
-                    'image' => $file->store('products', 'public'),
+                    'image' => $path,
                     'sort_order' => $product->images()->max('sort_order') + $index + 1,
                 ]);
             }
