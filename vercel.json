@@ -5,29 +5,53 @@
       "runtime": "vercel-php@0.9.0"
     }
   },
+  "build": {
+    "env": {
+      "IS_NOW": "1"
+    }
+  },
+  "buildCommand": "npm run build && php artisan storage:link --relative 2>/dev/null || true",
   "routes": [
     {
       "src": "/build/assets/(.*)",
       "dest": "/public/build/assets/$1"
     },
     {
-      "src": "/favicon.ico",
+      "src": "/storage/(.*)",
+      "dest": "/public/storage/$1"
+    },
+    {
+      "src": "/hero\\.webp",
+      "dest": "/public/hero.webp"
+    },
+    {
+      "src": "/hero\\.png",
+      "dest": "/public/hero.png"
+    },
+    {
+      "src": "/genteng1\\.jpeg",
+      "dest": "/public/genteng1.jpeg"
+    },
+    {
+      "src": "/favicon\\.ico",
       "headers": {
         "Content-Type": "image/x-icon"
       },
       "dest": "/public/favicon.ico"
     },
     {
+      "src": "/(.*\\.(css|js|jpg|jpeg|png|gif|svg|webp|ico|woff|woff2|ttf|eot))",
+      "dest": "/public/$1"
+    },
+    {
       "src": "/(.*)",
       "dest": "/api/index.php"
     }
   ],
-  "outputDirectory": "public",
   "env": {
     "APP_NAME": "Desa Pengrajin Dure",
     "APP_ENV": "production",
     "APP_DEBUG": "false",
-    "APP_URL": "https://desa-pengrajin-dure.vercel.app",
     "LOG_CHANNEL": "stderr",
     "CACHE_DRIVER": "array",
     "SESSION_DRIVER": "cookie",
