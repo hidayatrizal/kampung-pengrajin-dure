@@ -50,6 +50,12 @@ return [
     |
     */
 
+    // Determine log path based on environment
+    $isVercel = (getenv('IS_NOW') !== false || getenv('VERCEL') !== false ||
+                 isset($_SERVER['IS_NOW']) || isset($_SERVER['VERCEL']) ||
+                 (isset($_SERVER['VC_ENTRYPOINT']) && $_SERVER['VC_ENTRYPOINT'] === '1'));
+    $logPath = $isVercel ? '/tmp/logs/laravel.log' : storage_path('logs/laravel.log');
+
     'channels' => [
         'stack' => [
             'driver' => 'stack',
@@ -59,13 +65,13 @@ return [
 
         'single' => [
             'driver' => 'single',
-            'path' => storage_path('logs/laravel.log'),
+            'path' => $logPath,
             'level' => env('LOG_LEVEL', 'debug'),
         ],
 
         'daily' => [
             'driver' => 'daily',
-            'path' => storage_path('logs/laravel.log'),
+            'path' => $logPath,
             'level' => env('LOG_LEVEL', 'debug'),
             'days' => 14,
         ],
@@ -115,7 +121,7 @@ return [
         ],
 
         'emergency' => [
-            'path' => storage_path('logs/laravel.log'),
+            'path' => $logPath,
         ],
     ],
 
