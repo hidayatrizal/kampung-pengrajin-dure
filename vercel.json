@@ -30,7 +30,7 @@
     "APP_URL": "https://desa-pengrajin-dure.vercel.app",
     "LOG_CHANNEL": "stderr",
     "CACHE_DRIVER": "array",
-    "SESSION_DRIVER": "array",
+    "SESSION_DRIVER": "cookie",
     "APP_CONFIG_CACHE": "/tmp/config.php",
     "APP_EVENTS_CACHE": "/tmp/events.php",
     "APP_PACKAGES_CACHE": "/tmp/packages.php",

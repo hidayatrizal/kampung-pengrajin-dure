@@ -41,3 +41,32 @@ Route::prefix('admin')->middleware('auth')->name('admin.')->group(function () {
     Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
     Route::put('/settings', [SettingController::class, 'update'])->name('settings.update');
 });
+
+// System Maintenance (untuk lingkungan serverless Vercel)
+Route::get('/system/migrate-db', function () {
+    $token = env('DB_MIGRATE_TOKEN');
+    if (empty($token) || request('token') !== $token) {
+        abort(403, 'Akses ditolak: Token tidak valid.');
+    }
+    
+    try {
+        \Illuminate\Support\Facades\Artisan::call('migrate --force');
+        return '<h3>Database Migration Successful:</h3><pre>' . \Illuminate\Support\Facades\Artisan::output() . '</pre>';
+    } catch (\Exception $e) {
+        return '<h3>Migration Failed:</h3><pre>' . $e->getMessage() . '</pre>';
+    }
+});
+
+Route::get('/system/seed-db', function () {
+    $token = env('DB_MIGRATE_TOKEN');
+    if (empty($token) || request('token') !== $token) {
+        abort(403, 'Akses ditolak: Token tidak valid.');
+    }
+    
+    try {
+        \Illuminate\Support\Facades\Artisan::call('db:seed --force');
+        return '<h3>Database Seeding Successful:</h3><pre>' . \Illuminate\Support\Facades\Artisan::output() . '</pre>';
+    } catch (\Exception $e) {
+        return '<h3>Seeding Failed:</h3><pre>' . $e->getMessage() . '</pre>';
+    }
+});

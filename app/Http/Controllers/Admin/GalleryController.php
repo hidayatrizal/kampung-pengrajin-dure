@@ -28,8 +28,9 @@ class GalleryController extends Controller
             'url' => 'required|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
+        $disk = env('FILESYSTEM_DISK', 'public');
         if ($request->hasFile('url')) {
-            $validated['url'] = $request->file('url')->store('gallery', 'public');
+            $validated['url'] = $request->file('url')->store('gallery', $disk);
         }
 
         Gallery::create($validated);
@@ -51,11 +52,13 @@ class GalleryController extends Controller
             'url' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
+        $disk = env('FILESYSTEM_DISK', 'public');
         if ($request->hasFile('url')) {
-            if ($gallery->url && Storage::disk('public')->exists($gallery->url)) {
-                Storage::disk('public')->delete($gallery->url);
+            $oldUrl = $gallery->getRawOriginal('url');
+            if ($oldUrl && Storage::disk($disk)->exists($oldUrl)) {
+                Storage::disk($disk)->delete($oldUrl);
             }
-            $validated['url'] = $request->file('url')->store('gallery', 'public');
+            $validated['url'] = $request->file('url')->store('gallery', $disk);
         }
 
         $gallery->update($validated);
@@ -66,8 +69,10 @@ class GalleryController extends Controller
 
     public function destroy(Gallery $gallery)
     {
-        if ($gallery->url && Storage::disk('public')->exists($gallery->url)) {
-            Storage::disk('public')->delete($gallery->url);
+        $disk = env('FILESYSTEM_DISK', 'public');
+        $oldUrl = $gallery->getRawOriginal('url');
+        if ($oldUrl && Storage::disk($disk)->exists($oldUrl)) {
+            Storage::disk($disk)->delete($oldUrl);
         }
 
         $gallery->delete();

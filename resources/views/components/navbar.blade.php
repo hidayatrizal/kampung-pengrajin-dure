@@ -63,17 +63,17 @@
 
         if (isHomeTransparent) {
             if (isDark) {
-                logo.classList.add('text-stone-900');
-                logo.classList.remove('text-white');
-                links.classList.add('text-stone-800/80');
-                links.classList.remove('text-white/70');
-                if (sunIcon) sunIcon.classList.remove('hidden');
-                if (moonIcon) moonIcon.classList.add('hidden');
-            } else {
                 logo.classList.add('text-white');
                 logo.classList.remove('text-stone-900');
                 links.classList.add('text-white/70');
                 links.classList.remove('text-stone-800/80');
+                if (sunIcon) sunIcon.classList.remove('hidden');
+                if (moonIcon) moonIcon.classList.add('hidden');
+            } else {
+                logo.classList.add('text-stone-900');
+                logo.classList.remove('text-white');
+                links.classList.add('text-stone-800/80');
+                links.classList.remove('text-white/70');
                 if (sunIcon) sunIcon.classList.add('hidden');
                 if (moonIcon) moonIcon.classList.remove('hidden');
             }

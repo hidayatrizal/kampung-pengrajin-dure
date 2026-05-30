@@ -36,8 +36,9 @@ class ProductController extends Controller
             'additional_images.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
+        $disk = env('FILESYSTEM_DISK', 'public');
         if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('products', 'public');
+            $path = $request->file('image')->store('products', $disk);
             $validated['image'] = $path;
         }
 
@@ -45,7 +46,7 @@ class ProductController extends Controller
 
         if ($request->hasFile('additional_images')) {
             foreach ($request->file('additional_images') as $index => $file) {
-                $path = $file->store('products', 'public');
+                $path = $file->store('products', $disk);
                 ProductImage::create([
                     'product_id' => $product->id,
                     'image' => $path,
@@ -78,19 +79,21 @@ class ProductController extends Controller
             'additional_images.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
+        $disk = env('FILESYSTEM_DISK', 'public');
         if ($request->hasFile('image')) {
-            if ($product->image && Storage::disk('public')->exists($product->image)) {
-                Storage::disk('public')->delete($product->image);
+            $oldImage = $product->getRawOriginal('image');
+            if ($oldImage && Storage::disk($disk)->exists($oldImage)) {
+                Storage::disk($disk)->delete($oldImage);
             }
-            $path = $request->file('image')->store('products', 'public');
-            $validated['image'] = Storage::url($path);
+            $path = $request->file('image')->store('products', $disk);
+            $validated['image'] = $path;
         }
 
         $product->update($validated);
 
         if ($request->hasFile('additional_images')) {
             foreach ($request->file('additional_images') as $index => $file) {
-                $path = $file->store('products', 'public');
+                $path = $file->store('products', $disk);
                 ProductImage::create([
                     'product_id' => $product->id,
                     'image' => $path,
@@ -105,13 +108,16 @@ class ProductController extends Controller
 
     public function destroy(Product $product)
     {
-        if ($product->image && Storage::disk('public')->exists($product->image)) {
-            Storage::disk('public')->delete($product->image);
+        $disk = env('FILESYSTEM_DISK', 'public');
+        $oldImage = $product->getRawOriginal('image');
+        if ($oldImage && Storage::disk($disk)->exists($oldImage)) {
+            Storage::disk($disk)->delete($oldImage);
         }
 
         foreach ($product->images as $img) {
-            if (Storage::disk('public')->exists($img->image)) {
-                Storage::disk('public')->delete($img->image);
+            $imgRaw = $img->getRawOriginal('image');
+            if ($imgRaw && Storage::disk($disk)->exists($imgRaw)) {
+                Storage::disk($disk)->delete($imgRaw);
             }
         }
 
@@ -127,8 +133,10 @@ class ProductController extends Controller
             abort(403);
         }
 
-        if (Storage::disk('public')->exists($image->image)) {
-            Storage::disk('public')->delete($image->image);
+        $disk = env('FILESYSTEM_DISK', 'public');
+        $imgRaw = $image->getRawOriginal('image');
+        if ($imgRaw && Storage::disk($disk)->exists($imgRaw)) {
+            Storage::disk($disk)->delete($imgRaw);
         }
 
         $image->delete();

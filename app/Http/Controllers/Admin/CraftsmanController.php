@@ -34,8 +34,9 @@ class CraftsmanController extends Controller
             'wa' => 'nullable|string|max:20',
         ]);
 
+        $disk = env('FILESYSTEM_DISK', 'public');
         if ($request->hasFile('image')) {
-            $validated['image'] = $request->file('image')->store('craftsmen', 'public');
+            $validated['image'] = $request->file('image')->store('craftsmen', $disk);
         }
 
         Craftsman::create($validated);
@@ -63,11 +64,13 @@ class CraftsmanController extends Controller
             'wa' => 'nullable|string|max:20',
         ]);
 
+        $disk = env('FILESYSTEM_DISK', 'public');
         if ($request->hasFile('image')) {
-            if ($craftsman->image && Storage::disk('public')->exists($craftsman->image)) {
-                Storage::disk('public')->delete($craftsman->image);
+            $oldImage = $craftsman->getRawOriginal('image');
+            if ($oldImage && Storage::disk($disk)->exists($oldImage)) {
+                Storage::disk($disk)->delete($oldImage);
             }
-            $validated['image'] = $request->file('image')->store('craftsmen', 'public');
+            $validated['image'] = $request->file('image')->store('craftsmen', $disk);
         }
 
         $craftsman->update($validated);
@@ -78,8 +81,10 @@ class CraftsmanController extends Controller
 
     public function destroy(Craftsman $craftsman)
     {
-        if ($craftsman->image && Storage::disk('public')->exists($craftsman->image)) {
-            Storage::disk('public')->delete($craftsman->image);
+        $disk = env('FILESYSTEM_DISK', 'public');
+        $oldImage = $craftsman->getRawOriginal('image');
+        if ($oldImage && Storage::disk($disk)->exists($oldImage)) {
+            Storage::disk($disk)->delete($oldImage);
         }
 
         $craftsman->delete();
