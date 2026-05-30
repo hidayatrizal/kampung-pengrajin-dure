@@ -42,6 +42,10 @@ class Product extends Model
         if (preg_match('#^/storage/#', $value)) {
             return $value;
         }
+        // If we're using the vercel disk, the path is already relative to /storage
+        if ((env('IS_NOW') || env('VERCEL')) && !empty($value)) {
+            return '/storage/' . $value;
+        }
         // Otherwise, assume it's a relative path from the storage disk and return the full URL.
         return \Illuminate\Support\Facades\Storage::url($value);
     }

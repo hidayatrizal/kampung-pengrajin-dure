@@ -6,29 +6,47 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Craftsman extends Model
-{
-    use HasFactory;
-
-    protected $fillable = [
-        'name',
-        'image',
-        'description',
-        'address',
-        'latitude',
-        'longitude',
-        'capacity',
-        'price',
-        'wa',
-    ];
-
-    protected $casts = [
-        'latitude' => 'decimal:7',
-        'longitude' => 'decimal:7',
-    ];
-
-    public function products(): HasMany
+    class Craftsman extends Model
     {
-        return $this->hasMany(Product::class);
+        use HasFactory;
+
+        protected $fillable = [
+            'name',
+            'image',
+            'description',
+            'address',
+            'latitude',
+            'longitude',
+            'capacity',
+            'price',
+            'wa',
+        ];
+
+        protected $casts = [
+            'latitude' => 'decimal:7',
+            'longitude' => 'decimal:7',
+        ];
+
+        public function products(): HasMany
+        {
+            return $this->hasMany(Product::class);
+        }
+
+        public function getImageAttribute($value)
+        {
+            // If the value is already a full URL, return it as-is.
+            if (preg_match('/^https?:\/\//', $value)) {
+                return $value;
+            }
+            // If the value already starts with /storage/, it's already a public URL path
+            if (preg_match('#^/storage/#', $value)) {
+                return $value;
+            }
+            // If we're using the vercel disk, the path is already relative to /storage
+            if ((env('IS_NOW') || env('VERCEL')) && !empty($value)) {
+                return '/storage/' . $value;
+            }
+            // Otherwise, assume it's a relative path from the storage disk and return the full URL.
+            return \Illuminate\Support\Facades\Storage::url($value);
+        }
     }
-}

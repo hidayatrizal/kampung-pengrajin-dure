@@ -47,7 +47,7 @@ return [
         'vercel' => [
             'driver' => 'local',
             'root' => '/tmp/storage/app/public',
-            'url' => env('APP_URL').'/storage',
+            'url' => '/storage/',
             'visibility' => 'public',
             'throw' => false,
         ],
