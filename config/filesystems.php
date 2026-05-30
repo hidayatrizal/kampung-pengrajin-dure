@@ -13,7 +13,16 @@ return [
     |
     */
 
-    'default' => env('FILESYSTEM_DISK', (env('IS_NOW') || env('VERCEL')) ? 'vercel' : 'local'),
+    // Detect Vercel environment
+    $isVercel = (getenv('IS_NOW') !== false || getenv('VERCEL') !== false ||
+                 isset($_SERVER['IS_NOW']) || isset($_SERVER['VERCEL']) ||
+                 (isset($_SERVER['VC_ENTRYPOINT']) && $_SERVER['VC_ENTRYPOINT'] === '1'));
+                 
+    // Set default filesystem disk based on environment
+    $defaultDisk = $isVercel ? 'vercel' : 'local';
+    
+    // Allow override via FILESYSTEM_DISK env var, but default to environment-appropriate value
+    'default' => env('FILESYSTEM_DISK', $defaultDisk),
 
     /*
     |--------------------------------------------------------------------------

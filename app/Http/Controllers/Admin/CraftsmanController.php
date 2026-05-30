@@ -34,8 +34,11 @@ class CraftsmanController extends Controller
             'wa' => 'nullable|string|max:20',
         ]);
 
-        // Use vercel disk when on Vercel, otherwise use configured disk
-        $disk = (env('IS_NOW') || env('VERCEL')) ? 'vercel' : env('FILESYSTEM_DISK', 'public');
+        // Determine disk based on environment (more reliable detection)
+        $isVercel = (getenv('IS_NOW') !== false || getenv('VERCEL') !== false ||
+                     isset($_SERVER['IS_NOW']) || isset($_SERVER['VERCEL']) ||
+                     (isset($_SERVER['VC_ENTRYPOINT']) && $_SERVER['VC_ENTRYPOINT'] === '1'));
+        $disk = $isVercel ? 'vercel' : env('FILESYSTEM_DISK', 'public');
         if ($request->hasFile('image')) {
             $validated['image'] = $request->file('image')->store('craftsmen', $disk);
         }
@@ -65,8 +68,11 @@ class CraftsmanController extends Controller
             'wa' => 'nullable|string|max:20',
         ]);
 
-        // Use vercel disk when on Vercel, otherwise use configured disk
-        $disk = (env('IS_NOW') || env('VERCEL')) ? 'vercel' : env('FILESYSTEM_DISK', 'public');
+        // Determine disk based on environment (more reliable detection)
+        $isVercel = (getenv('IS_NOW') !== false || getenv('VERCEL') !== false ||
+                     isset($_SERVER['IS_NOW']) || isset($_SERVER['VERCEL']) ||
+                     (isset($_SERVER['VC_ENTRYPOINT']) && $_SERVER['VC_ENTRYPOINT'] === '1'));
+        $disk = $isVercel ? 'vercel' : env('FILESYSTEM_DISK', 'public');
         if ($request->hasFile('image')) {
             $oldImage = $craftsman->getRawOriginal('image');
             if ($oldImage && Storage::disk($disk)->exists($oldImage)) {

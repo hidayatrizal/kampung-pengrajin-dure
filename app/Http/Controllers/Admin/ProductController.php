@@ -36,8 +36,11 @@ class ProductController extends Controller
             'additional_images.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
-        // Use vercel disk when on Vercel, otherwise use configured disk
-        $disk = (env('IS_NOW') || env('VERCEL')) ? 'vercel' : env('FILESYSTEM_DISK', 'public');
+        // Determine disk based on environment (more reliable detection)
+        $isVercel = (getenv('IS_NOW') !== false || getenv('VERCEL') !== false ||
+                     isset($_SERVER['IS_NOW']) || isset($_SERVER['VERCEL']) ||
+                     (isset($_SERVER['VC_ENTRYPOINT']) && $_SERVER['VC_ENTRYPOINT'] === '1'));
+        $disk = $isVercel ? 'vercel' : env('FILESYSTEM_DISK', 'public');
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('products', $disk);
             $validated['image'] = $path;
@@ -95,8 +98,11 @@ class ProductController extends Controller
 
         $product->update($validated);
 
-        // Use vercel disk when on Vercel, otherwise use configured disk
-        $disk = (env('IS_NOW') || env('VERCEL')) ? 'vercel' : env('FILESYSTEM_DISK', 'public');
+        // Determine disk based on environment (more reliable detection)
+        $isVercel = (getenv('IS_NOW') !== false || getenv('VERCEL') !== false ||
+                     isset($_SERVER['IS_NOW']) || isset($_SERVER['VERCEL']) ||
+                     (isset($_SERVER['VC_ENTRYPOINT']) && $_SERVER['VC_ENTRYPOINT'] === '1'));
+        $disk = $isVercel ? 'vercel' : env('FILESYSTEM_DISK', 'public');
         if ($request->hasFile('additional_images')) {
             foreach ($request->file('additional_images') as $index => $file) {
                 $path = $file->store('products', $disk);

@@ -43,7 +43,10 @@ class Product extends Model
             return $value;
         }
         // If we're using the vercel disk, the path is already relative to /storage
-        if ((env('IS_NOW') || env('VERCEL')) && !empty($value)) {
+        $isVercel = (getenv('IS_NOW') !== false || getenv('VERCEL') !== false ||
+                     isset($_SERVER['IS_NOW']) || isset($_SERVER['VERCEL']) ||
+                     (isset($_SERVER['VC_ENTRYPOINT']) && $_SERVER['VC_ENTRYPOINT'] === '1'));
+        if ($isVercel && !empty($value)) {
             return '/storage/' . $value;
         }
         // Otherwise, assume it's a relative path from the storage disk and return the full URL.
