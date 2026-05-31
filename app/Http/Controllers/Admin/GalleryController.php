@@ -6,6 +6,9 @@ use App\Models\Gallery;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class GalleryController extends Controller
 {
@@ -13,6 +16,36 @@ class GalleryController extends Controller
     {
         return (getenv('VERCEL') !== false || ($_SERVER['VERCEL'] ?? null) === '1')
             ? 'vercel' : env('FILESYSTEM_DISK', 'public');
+    }
+
+    private function uploadToVercelBlob($file, $path = 'gallery')
+    {
+        // Only use Vercel Blob when actually on Vercel
+        if (!((getenv('VERCEL') !== false || ($_SERVER['VERCEL'] ?? null) === '1'))) {
+            return $file->store($path, 'public');
+        }
+
+        try {
+            // For Vercel deployment, we'll use the vercel disk
+            // which is configured to use /tmp/storage/app/public
+            // Vercel's serverless functions can write to /tmp
+            $disk = 'vercel';
+            
+            // Generate a unique filename to avoid conflicts
+            $filename = Str::uuid() . '_' . $file->getClientOriginalName();
+            $filePath = $path . '/' . $filename;
+            
+            // Store the file
+            $storedPath = $file->storeAs($path, $filename, $disk);
+            
+            Log::info('File uploaded to Vercel disk: ' . $storedPath);
+            
+            return $storedPath;
+        } catch (\Exception $e) {
+            Log::error('Error uploading to Vercel disk: ' . $e->getMessage());
+            // Fallback to local storage on error
+            return $file->store($path, 'public');
+        }
     }
 
     public function index()
@@ -34,9 +67,8 @@ class GalleryController extends Controller
             'url' => 'required|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
-        $disk = $this->getDisk();
         if ($request->hasFile('url')) {
-            $validated['url'] = $request->file('url')->store('gallery', $disk);
+            $validated['url'] = $this->uploadToVercelBlob($request->file('url'), 'gallery');
         }
 
         Gallery::create($validated);

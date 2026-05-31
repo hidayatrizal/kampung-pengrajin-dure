@@ -8,6 +8,9 @@ use App\Models\ProductImage;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
@@ -15,6 +18,36 @@ class ProductController extends Controller
     {
         return (getenv('VERCEL') !== false || ($_SERVER['VERCEL'] ?? null) === '1')
             ? 'vercel' : env('FILESYSTEM_DISK', 'public');
+    }
+
+    private function uploadToVercelBlob($file, $path = 'products')
+    {
+        // Only use Vercel Blob when actually on Vercel
+        if (!((getenv('VERCEL') !== false || ($_SERVER['VERCEL'] ?? null) === '1'))) {
+            return $file->store($path, 'public');
+        }
+
+        try {
+            // For Vercel deployment, we'll use the vercel disk
+            // which is configured to use /tmp/storage/app/public
+            // Vercel's serverless functions can write to /tmp
+            $disk = 'vercel';
+            
+            // Generate a unique filename to avoid conflicts
+            $filename = Str::uuid() . '_' . $file->getClientOriginalName();
+            $filePath = $path . '/' . $filename;
+            
+            // Store the file
+            $storedPath = $file->storeAs($path, $filename, $disk);
+            
+            Log::info('File uploaded to Vercel disk: ' . $storedPath);
+            
+            return $storedPath;
+        } catch (\Exception $e) {
+            Log::error('Error uploading to Vercel disk: ' . $e->getMessage());
+            // Fallback to local storage on error
+            return $file->store($path, 'public');
+        }
     }
 
     public function index()
@@ -42,9 +75,8 @@ class ProductController extends Controller
             'additional_images.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
-        $disk = $this->getDisk();
         if ($request->hasFile('image')) {
-            $validated['image'] = $request->file('image')->store('products', $disk);
+            $validated['image'] = $this->uploadToVercelBlob($request->file('image'), 'products');
         }
 
         $product = Product::create($validated);
@@ -53,7 +85,7 @@ class ProductController extends Controller
             foreach ($request->file('additional_images') as $index => $file) {
                 ProductImage::create([
                     'product_id' => $product->id,
-                    'image' => $file->store('products', $disk),
+                    'image' => $this->uploadToVercelBlob($file, 'products'),
                     'sort_order' => $index,
                 ]);
             }
