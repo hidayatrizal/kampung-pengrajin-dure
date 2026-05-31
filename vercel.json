@@ -8,8 +8,7 @@
   "build": {
     "env": {
       "IS_NOW": "1"
-    },
-    "outputDirectory": "public"
+    }
   },
   "buildCommand": "npm run build && php artisan storage:link --relative 2>/dev/null || true",
   "routes": [
