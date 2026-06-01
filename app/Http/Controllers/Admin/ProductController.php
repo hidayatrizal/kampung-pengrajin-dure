@@ -200,29 +200,6 @@ class ProductController extends Controller
             ->with('success', 'Produk berhasil ditambahkan.');
     }
 
-        $product = Product::create($validated);
-
-        if ($request->hasFile('additional_images')) {
-            foreach ($request->file('additional_images') as $index => $file) {
-                ProductImage::create([
-                    'product_id' => $product->id,
-                    'image' => $this->uploadToVercelBlob($file, 'products'),
-                    'sort_order' => $index,
-                ]);
-            }
-        }
-
-        return redirect()->route('admin.products.index')
-            ->with('success', 'Produk berhasil ditambahkan.');
-    }
-
-    public function edit(Product $product)
-    {
-        $craftsmen = Craftsman::orderBy('name')->get();
-        $product->load('images');
-        return view('admin.products.edit', compact('product', 'craftsmen'));
-    }
-
     public function update(Request $request, Product $product)
     {
         $validated = $request->validate([
