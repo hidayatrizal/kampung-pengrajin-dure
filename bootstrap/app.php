@@ -15,6 +15,16 @@ $app = new Illuminate\Foundation\Application(
     $_ENV['APP_BASE_PATH'] ?? dirname(__DIR__)
 );
 
+// On Vercel (serverless), /var/task/ is read-only at runtime.
+// Redirect bootstrap cache to /tmp/ which is writable.
+if (getenv('VERCEL') || ($_SERVER['VERCEL'] ?? null) === '1') {
+    $app->useBootstrapPath(sys_get_temp_dir() . '/bootstrap');
+    $bootstrapCache = $app->bootstrapPath('cache');
+    if (! is_dir($bootstrapCache)) {
+        mkdir($bootstrapCache, 0755, true);
+    }
+}
+
 /*
 |--------------------------------------------------------------------------
 | Bind Important Interfaces
