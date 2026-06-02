@@ -65,17 +65,49 @@ return [
 
         'pgsql' => [
             'driver' => 'pgsql',
-            'url' => env('DATABASE_URL'),
+            'url' => (function () {
+                $url = env('DATABASE_URL');
+                if ($url && str_contains($url, 'neon.tech')) {
+                    $host = parse_url($url, PHP_URL_HOST);
+                    if ($host) {
+                        $endpoint = explode('.', $host)[0];
+                        $query = parse_url($url, PHP_URL_QUERY);
+                        $params = [];
+                        if ($query) {
+                            parse_str($query, $params);
+                        }
+                        $params['sslmode'] = 'require';
+                        $params['options'] = 'endpoint=' . $endpoint;
+                        $baseUrl = explode('?', $url)[0];
+                        return $baseUrl . '?' . http_build_query($params);
+                    }
+                }
+                return $url;
+            })(),
             'host' => env('DB_HOST', '127.0.0.1'),
             'port' => env('DB_PORT', '5432'),
             'database' => env('DB_DATABASE', 'forge'),
             'username' => env('DB_USERNAME', 'forge'),
-            'password' => env('DB_PASSWORD', ''),
+            'password' => (function () {
+                $password = env('DB_PASSWORD', '');
+                $host = env('DB_HOST', '');
+                if (str_contains($host, 'neon.tech') && !str_starts_with($password, 'endpoint=')) {
+                    $endpoint = explode('.', $host)[0];
+                    return 'endpoint=' . $endpoint . '$' . $password;
+                }
+                return $password;
+            })(),
             'charset' => 'utf8',
             'prefix' => '',
             'prefix_indexes' => true,
             'search_path' => 'public',
-            'sslmode' => env('DB_SSLMODE', 'prefer'),
+            'sslmode' => (function () {
+                $host = env('DB_HOST', '');
+                if (str_contains($host, 'neon.tech')) {
+                    return 'require';
+                }
+                return env('DB_SSLMODE', 'prefer');
+            })(),
             'options' => [],
         ],
 

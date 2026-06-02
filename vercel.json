@@ -62,7 +62,7 @@
     "DB_PORT": "5432",
     "DB_DATABASE": "neondb",
     "DB_USERNAME": "neondb_owner",
-    "DB_PASSWORD": "endpoint=ep-noisy-sea-aqasinw1-pooler$npg_0QycCZO1JHKM",
+    "DB_PASSWORD": "npg_0QycCZO1JHKM",
     "DB_SSLMODE": "require",
     "APP_KEY": "base64:RySmqNnqCZRsKrPBVIDxV2Xbrw+uFErqpd2ozSDLhpY=",
     "APP_CONFIG_CACHE": "/tmp/config.php",
