@@ -58,6 +58,7 @@
     "SESSION_DRIVER": "cookie",
     "VIEW_COMPILED_PATH": "/tmp/views",
     "DB_CONNECTION": "pgsql",
+    "APP_KEY": "base64:RySmqNnqCZRsKrPBVIDxV2Xbrw+uFErqpd2ozSDLhpY=",
     "VERCEL": "1"
   }
 }

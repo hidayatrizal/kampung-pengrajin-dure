@@ -75,7 +75,20 @@ return [
             'prefix' => '',
             'prefix_indexes' => true,
             'search_path' => 'public',
-            'sslmode' => 'prefer',
+            'sslmode' => 'require',
+            'options' => (function () {
+                $custom = env('DB_OPTIONS');
+                if ($custom) {
+                    return $custom;
+                }
+                $url = env('DATABASE_URL');
+                $hostFromUrl = $url ? (parse_url($url, PHP_URL_HOST) ?? '') : '';
+                $host = $hostFromUrl ?: env('DB_HOST', '');
+                if (str_contains($host, 'neon.tech')) {
+                    return 'endpoint=' . explode('.', $host)[0];
+                }
+                return null;
+            })(),
         ],
 
         'sqlsrv' => [
