@@ -35,7 +35,7 @@
                     <div class="relative">
                         @if($gallery->url)
                         <div id="current-image-gallery" class="mb-3">
-                            <img src="{{ Storage::url($gallery->url) }}" alt="{{ $gallery->title }}" class="w-48 h-32 object-cover rounded-xl border border-stone-200">
+                            <img src="{{ $gallery->url }}" alt="{{ $gallery->title }}" class="w-48 h-32 object-cover rounded-xl border border-stone-200">
                             <p class="text-xs text-stone-400 mt-1.5">Gambar saat ini</p>
                         </div>
                         @endif

@@ -114,7 +114,7 @@
         <div class="space-y-3">
             @foreach($recentProducts as $product)
             <div class="flex items-center gap-4 p-3 rounded-xl hover:bg-stone-50 transition-colors">
-                <img src="{{ \Illuminate\Support\Facades\Storage::url($product->image) }}" alt="{{ $product->name }}" class="w-12 h-12 object-cover rounded-lg border border-stone-100 shrink-0">
+                <img src="{{ $product->image }}" alt="{{ $product->name }}" class="w-12 h-12 object-cover rounded-lg border border-stone-100 shrink-0">
                 <div class="flex-1 min-w-0">
                     <h5 class="text-sm font-semibold text-stone-800 truncate">{{ $product->name }}</h5>
                     <p class="text-[11px] text-stone-400 uppercase tracking-wider">{{ $product->category }} &middot; {{ $product->price }}</p>

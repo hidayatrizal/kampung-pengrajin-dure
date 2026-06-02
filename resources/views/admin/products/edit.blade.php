@@ -58,7 +58,7 @@
                     <div class="relative">
                         @if($product->image)
                         <div id="current-image-product" class="mb-3">
-                            <img src="{{ Storage::url($product->image) }}" alt="{{ $product->name }}" class="w-32 h-32 object-cover rounded-xl border border-stone-200">
+                            <img src="{{ $product->image }}" alt="{{ $product->name }}" class="w-32 h-32 object-cover rounded-xl border border-stone-200">
                             <p class="text-xs text-stone-400 mt-1.5">Gambar utama saat ini</p>
                         </div>
                         @endif
@@ -79,7 +79,7 @@
                     <div class="grid grid-cols-3 md:grid-cols-4 gap-3">
                         @foreach($product->images as $img)
                         <div class="relative group" id="img-{{ $img->id }}">
-                            <img src="{{ Storage::url($img->image) }}" class="w-full h-24 object-cover rounded-lg border border-stone-200">
+                            <img src="{{ $img->image }}" class="w-full h-24 object-cover rounded-lg border border-stone-200">
                             <form method="POST" action="{{ route('admin.products.images.destroy', [$product, $img]) }}" class="absolute top-1 right-1">
                                 @csrf
                                 @method('DELETE')

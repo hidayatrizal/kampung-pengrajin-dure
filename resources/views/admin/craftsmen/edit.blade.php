@@ -47,7 +47,7 @@
                     <div class="relative">
                         @if($craftsman->image)
                         <div id="current-image" class="mb-3">
-                            <img src="{{ Storage::url($craftsman->image) }}" alt="{{ $craftsman->name }}" class="w-24 h-24 object-cover rounded-xl border border-stone-200">
+                            <img src="{{ $craftsman->image }}" alt="{{ $craftsman->name }}" class="w-24 h-24 object-cover rounded-xl border border-stone-200">
                             <p class="text-xs text-stone-400 mt-1.5">Foto saat ini</p>
                         </div>
                         @endif

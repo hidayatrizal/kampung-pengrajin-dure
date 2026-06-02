@@ -18,7 +18,7 @@
     @forelse($galleries as $item)
     <div class="group bg-white rounded-xl border border-stone-100 hover:border-terracotta-200 hover:shadow-sm transition-all overflow-hidden">
         <div class="aspect-[4/3] overflow-hidden">
-            <img src="{{ \Illuminate\Support\Facades\Storage::url($item->url) }}" alt="{{ $item->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+            <img src="{{ $item->url }}" alt="{{ $item->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
         </div>
         <div class="p-3 flex items-center justify-between">
             <div class="min-w-0">

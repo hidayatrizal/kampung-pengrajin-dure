@@ -165,6 +165,12 @@ class ProductController extends Controller
         return view('admin.products.create', compact('craftsmen'));
     }
 
+    public function edit(Product $product)
+    {
+        $craftsmen = Craftsman::orderBy('name')->get();
+        return view('admin.products.edit', compact('product', 'craftsmen'));
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([

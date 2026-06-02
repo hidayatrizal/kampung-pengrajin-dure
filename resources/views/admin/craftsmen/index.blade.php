@@ -17,7 +17,7 @@
 <div class="grid grid-cols-1 gap-3">
     @forelse($craftsmen as $craftsman)
     <div class="flex items-center gap-4 p-4 bg-white rounded-xl border border-stone-100 hover:border-terracotta-200 hover:shadow-sm transition-all">
-        <img src="{{ \Illuminate\Support\Facades\Storage::url($craftsman->image) }}" class="w-12 h-12 object-cover rounded-full border border-stone-100 shrink-0" alt="{{ $craftsman->name }}">
+        <img src="{{ $craftsman->image }}" class="w-12 h-12 object-cover rounded-full border border-stone-100 shrink-0" alt="{{ $craftsman->name }}">
         <div class="flex-1 min-w-0">
             <h5 class="font-serif text-base text-stone-900 truncate">{{ $craftsman->name }}</h5>
             <p class="text-[10px] uppercase tracking-widest text-stone-400">

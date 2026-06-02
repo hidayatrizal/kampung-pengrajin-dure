@@ -227,7 +227,7 @@
                 <div class="fade-in group" style="transition-delay: {{ $index * 200 }}ms">
                     <div class="flex flex-col md:flex-row items-stretch bg-cream-50 dark:bg-stone-950 hover:bg-cream-100 dark:hover:bg-stone-800 transition-all duration-500 overflow-hidden rounded-2xl">
                         <div class="md:w-56 lg:w-64 flex-shrink-0 overflow-hidden">
-                            <img src="{{ Storage::url($craftsman->image) }}" alt="{{ $craftsman->name }}" class="w-full h-64 md:h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105">
+                            <img src="{{ $craftsman->image }}" alt="{{ $craftsman->name }}" class="w-full h-64 md:h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105">
                         </div>
                         <div class="flex flex-col justify-center p-8 lg:p-10 flex-grow">
                             <p class="text-[10px] uppercase tracking-[0.3em] text-terracotta-600 dark:text-terracotta-400 font-semibold mb-3">UMKM Desa Dure</p>
@@ -288,7 +288,7 @@
                 @foreach($galleries as $index => $item)
                 @php $aspectClass = $index === 0 ? 'aspect-[4/5]' : ($index === 3 ? 'aspect-square' : 'aspect-[3/4]'); @endphp
                 <div class="fade-in relative group overflow-hidden rounded-xl {{ $index === 0 ? 'lg:col-span-2 lg:row-span-2' : '' }}" style="transition-delay: {{ $index * 100 }}ms">
-                    <img src="{{ Storage::url($item->url) }}" alt="{{ $item->title }}" class="w-full {{ $aspectClass }} object-cover transition-all duration-700 group-hover:scale-105 group-hover:opacity-90">
+                    <img src="{{ $item->url }}" alt="{{ $item->title }}" class="w-full {{ $aspectClass }} object-cover transition-all duration-700 group-hover:scale-105 group-hover:opacity-90">
                     <div class="absolute inset-0 bg-gradient-to-t from-stone-900/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end p-6 rounded-xl">
                         <div class="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
                             <p class="text-[10px] uppercase tracking-[0.3em] text-terracotta-300 dark:text-terracotta-400 font-semibold mb-1">{{ $item->category }}</p>

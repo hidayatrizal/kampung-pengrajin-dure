@@ -82,7 +82,7 @@
         <div class="max-w-7xl mx-auto">
             <div class="flex items-start gap-4 md:gap-6">
                 @if($activeToko->image)
-                <img src="{{ Storage::url($activeToko->image) }}" alt="{{ $activeToko->name }}" class="w-14 h-14 md:w-16 md:h-16 rounded-full object-cover border-2 border-terracotta-500/30 shrink-0">
+                <img src="{{ $activeToko->image }}" alt="{{ $activeToko->name }}" class="w-14 h-14 md:w-16 md:h-16 rounded-full object-cover border-2 border-terracotta-500/30 shrink-0">
                 @endif
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center justify-between">
