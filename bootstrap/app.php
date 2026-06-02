@@ -11,35 +11,26 @@
 |
 */
 
-$app = new Illuminate\Foundation\Application(
+class VercelApplication extends Illuminate\Foundation\Application
+{
+    public function getCachedServicesPath()
+    {
+        return sys_get_temp_dir().'/bootstrap/cache/services.php';
+    }
+
+    public function getCachedPackagesPath()
+    {
+        return sys_get_temp_dir().'/bootstrap/cache/packages.php';
+    }
+}
+
+$app = new VercelApplication(
     $_ENV['APP_BASE_PATH'] ?? dirname(__DIR__)
 );
 
-// On Vercel (serverless), /var/task/ is read-only at runtime.
-// Use PHP 7.4+ Closure::call to set the protected $bootstrapPath to /tmp/
-// so ALL cached files (packages.php, services.php, etc.) write to a writable dir.
-if (getenv('VERCEL') || ($_SERVER['VERCEL'] ?? null) === '1') {
-    $bootstrapPath = sys_get_temp_dir() . '/bootstrap';
-
-    (function ($path) {
-        $this->bootstrapPath = $path;
-    })->call($app, $bootstrapPath);
-
-    $bootstrapCache = $bootstrapPath . '/cache';
-    if (! is_dir($bootstrapCache)) {
-        mkdir($bootstrapCache, 0755, true);
-    }
-
-    // PackageManifest was already created in the constructor (old path).
-    // Override its binding so RegisterFacades gets the writable version.
-    $app->instance(
-        \Illuminate\Foundation\PackageManifest::class,
-        new \Illuminate\Foundation\PackageManifest(
-            new \Illuminate\Filesystem\Filesystem,
-            $app->basePath(),
-            $bootstrapCache . '/packages.php'
-        )
-    );
+$tmpCache = sys_get_temp_dir().'/bootstrap/cache';
+if (! is_dir($tmpCache)) {
+    mkdir($tmpCache, 0755, true);
 }
 
 /*
