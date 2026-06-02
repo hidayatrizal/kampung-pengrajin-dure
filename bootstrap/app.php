@@ -15,6 +15,23 @@ $app = new Illuminate\Foundation\Application(
     $_ENV['APP_BASE_PATH'] ?? dirname(__DIR__)
 );
 
+// On Vercel (serverless), /var/task/ is read-only at runtime.
+// Override PackageManifest to write to /tmp/ which is writable.
+if (getenv('VERCEL') || ($_SERVER['VERCEL'] ?? null) === '1') {
+    $bootstrapCachePath = sys_get_temp_dir() . '/bootstrap/cache';
+    if (! is_dir($bootstrapCachePath)) {
+        mkdir($bootstrapCachePath, 0755, true);
+    }
+    $app->instance(
+        \Illuminate\Foundation\PackageManifest::class,
+        new \Illuminate\Foundation\PackageManifest(
+            new \Illuminate\Filesystem\Filesystem,
+            $app->basePath(),
+            $bootstrapCachePath . '/packages.php'
+        )
+    );
+}
+
 /*
 |--------------------------------------------------------------------------
 | Bind Important Interfaces
