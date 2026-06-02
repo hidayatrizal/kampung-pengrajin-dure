@@ -16,18 +16,28 @@ $app = new Illuminate\Foundation\Application(
 );
 
 // On Vercel (serverless), /var/task/ is read-only at runtime.
-// Override PackageManifest to write to /tmp/ which is writable.
+// Use PHP 7.4+ Closure::call to set the protected $bootstrapPath to /tmp/
+// so ALL cached files (packages.php, services.php, etc.) write to a writable dir.
 if (getenv('VERCEL') || ($_SERVER['VERCEL'] ?? null) === '1') {
-    $bootstrapCachePath = sys_get_temp_dir() . '/bootstrap/cache';
-    if (! is_dir($bootstrapCachePath)) {
-        mkdir($bootstrapCachePath, 0755, true);
+    $bootstrapPath = sys_get_temp_dir() . '/bootstrap';
+
+    (function ($path) {
+        $this->bootstrapPath = $path;
+    })->call($app, $bootstrapPath);
+
+    $bootstrapCache = $bootstrapPath . '/cache';
+    if (! is_dir($bootstrapCache)) {
+        mkdir($bootstrapCache, 0755, true);
     }
+
+    // PackageManifest was already created in the constructor (old path).
+    // Override its binding so RegisterFacades gets the writable version.
     $app->instance(
         \Illuminate\Foundation\PackageManifest::class,
         new \Illuminate\Foundation\PackageManifest(
             new \Illuminate\Filesystem\Filesystem,
             $app->basePath(),
-            $bootstrapCachePath . '/packages.php'
+            $bootstrapCache . '/packages.php'
         )
     );
 }
