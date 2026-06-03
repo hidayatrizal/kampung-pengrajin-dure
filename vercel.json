@@ -14,30 +14,16 @@
   "buildCommand": "npm run build && php artisan package:discover --ansi 2>/dev/null; php artisan storage:link --relative 2>/dev/null; true",
   "routes": [
     {
-      "src": "/assets/(.*)",
-      "dest": "/dist/assets/$1"
+      "src": "/build/(.*)",
+      "dest": "/build/$1"
     },
     {
       "src": "/storage/(.*)",
       "dest": "/api/index.php"
     },
     {
-      "src": "/hero\\.webp",
-      "dest": "/public/hero.webp"
-    },
-    {
-      "src": "/hero\\.png",
-      "dest": "/public/hero.png"
-    },
-    {
-      "src": "/genteng1\\.jpeg",
-      "dest": "/public/genteng1.jpeg"
-    },
-    {
       "src": "/favicon\\.ico",
-      "headers": {
-        "Content-Type": "image/x-icon"
-      },
+      "headers": { "Content-Type": "image/x-icon" },
       "dest": "/public/favicon.ico"
     },
     {
@@ -52,11 +38,14 @@
   "env": {
     "APP_NAME": "Desa Pengrajin Dure",
     "APP_ENV": "production",
-    "APP_DEBUG": "true",
+    "APP_DEBUG": "false",
+    "APP_KEY": "base64:RySmqNnqCZRsKrPBVIDxV2Xbrw+uFErqpd2ozSDLhpY=",
+    "APP_URL": "https://kampung-pengrajin-dure.vercel.app",
     "LOG_CHANNEL": "stderr",
     "CACHE_DRIVER": "array",
     "SESSION_DRIVER": "cookie",
     "VIEW_COMPILED_PATH": "/tmp/views",
+    "APP_CONFIG_CACHE": "/tmp/config.php",
     "DB_CONNECTION": "pgsql",
     "DB_HOST": "ep-noisy-sea-aqasinw1-pooler.c-8.us-east-1.aws.neon.tech",
     "DB_PORT": "5432",
@@ -64,8 +53,6 @@
     "DB_USERNAME": "neondb_owner",
     "DB_PASSWORD": "npg_0QycCZO1JHKM",
     "DB_SSLMODE": "require",
-    "APP_KEY": "base64:RySmqNnqCZRsKrPBVIDxV2Xbrw+uFErqpd2ozSDLhpY=",
-    "APP_CONFIG_CACHE": "/tmp/config.php",
     "VERCEL": "1"
   }
 }
