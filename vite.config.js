@@ -6,10 +6,10 @@ export default defineConfig({
         laravel({
             input: ['resources/css/app.css', 'resources/js/app.js'],
             refresh: true,
-            assets: ['public/**'],
         }),
     ],
     build: {
-        outDir: 'dist', // 👈 Output ke dist/ bukan public/build/
+        outDir: 'public/build',   // ← INI yang penting!
+        manifest: true,
     },
 });
