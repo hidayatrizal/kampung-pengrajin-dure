@@ -56,5 +56,7 @@
     "DB_PASSWORD": "npg_0QycCZO1JHKM",
     "DB_SSLMODE": "require",
     "VERCEL": "1"
+    "CLOUDINARY_URL": "cloudinary://545677955221147:cXBR_JdsEWf5AtEoASr5hnk0XU@djkczwulv"
+}
   }
 }
