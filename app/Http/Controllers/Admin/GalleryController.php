@@ -5,20 +5,49 @@ namespace App\Http\Controllers\Admin;
 use App\Models\Gallery;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
-use App\Traits\VercelBlobStorage;
 
 class GalleryController extends Controller
 {
-    use VercelBlobStorage;
-
-    private function getDisk()
+    /**
+     * Upload file ke Cloudinary
+     */
+    private function uploadToCloudinary($file, $folder = 'gallery')
     {
-        return (getenv('VERCEL') !== false || ($_SERVER['VERCEL'] ?? null) === '1')
-            ? 'vercel' : env('FILESYSTEM_DISK', 'public');
+        try {
+            $uploaded = cloudinary()->upload($file->getRealPath(), [
+                'folder' => $folder,
+                'resource_type' => 'image',
+            ]);
+            return $uploaded->getSecurePath();
+        } catch (\Exception $e) {
+            Log::error('Cloudinary upload error: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Hapus file dari Cloudinary berdasarkan URL
+     */
+    private function deleteFromCloudinary($url)
+    {
+        if (!$url || !filter_var($url, FILTER_VALIDATE_URL)) {
+            return false;
+        }
+
+        try {
+            $pattern = '/\/upload\/(?:v\d+\/)?(.+)\.[a-zA-Z]+$/';
+            if (preg_match($pattern, $url, $matches)) {
+                $publicId = $matches[1];
+                cloudinary()->destroy($publicId);
+                Log::info('Deleted from Cloudinary: ' . $publicId);
+                return true;
+            }
+        } catch (\Exception $e) {
+            Log::error('Cloudinary delete error: ' . $e->getMessage());
+        }
+
+        return false;
     }
 
     public function index()
@@ -35,13 +64,13 @@ class GalleryController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'title' => 'required|string|max:255',
+            'title'    => 'required|string|max:255',
             'category' => 'required|string|max:255',
-            'url' => 'required|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'url'      => 'required|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
         if ($request->hasFile('url')) {
-            $validated['url'] = $this->uploadToVercelBlob($request->file('url'), 'gallery');
+            $validated['url'] = $this->uploadToCloudinary($request->file('url'), 'gallery');
         }
 
         Gallery::create($validated);
@@ -58,17 +87,14 @@ class GalleryController extends Controller
     public function update(Request $request, Gallery $gallery)
     {
         $validated = $request->validate([
-            'title' => 'required|string|max:255',
+            'title'    => 'required|string|max:255',
             'category' => 'required|string|max:255',
-            'url' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'url'      => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
         if ($request->hasFile('url')) {
-            $oldUrl = $gallery->getRawOriginal('url');
-            if ($oldUrl) {
-                $this->deleteStorageFile($oldUrl);
-            }
-            $validated['url'] = $this->uploadToVercelBlob($request->file('url'), 'gallery');
+            $this->deleteFromCloudinary($gallery->getRawOriginal('url'));
+            $validated['url'] = $this->uploadToCloudinary($request->file('url'), 'gallery');
         }
 
         $gallery->update($validated);
@@ -79,11 +105,7 @@ class GalleryController extends Controller
 
     public function destroy(Gallery $gallery)
     {
-        $oldUrl = $gallery->getRawOriginal('url');
-        if ($oldUrl) {
-            $this->deleteStorageFile($oldUrl);
-        }
-
+        $this->deleteFromCloudinary($gallery->getRawOriginal('url'));
         $gallery->delete();
 
         return redirect()->route('admin.gallery.index')

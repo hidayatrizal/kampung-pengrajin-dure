@@ -7,149 +7,50 @@ use App\Models\Craftsman;
 use App\Models\ProductImage;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
-    private function getDisk()
-    {
-        return (getenv('VERCEL') !== false || ($_SERVER['VERCEL'] ?? null) === '1')
-            ? 'vercel' : env('FILESYSTEM_DISK', 'public');
-    }
-
     /**
-     * Upload file to Vercel Blob storage using REST API
-     * 
-     * @param \Illuminate\Http\UploadedFile $file
-     * @param string $path Directory path (e.g., 'products', 'gallery')
-     * @return string Public URL or local path
+     * Upload file ke Cloudinary
      */
-    private function uploadToVercelBlob($file, $path = 'products')
+    private function uploadToCloudinary($file, $folder = 'products')
     {
-        // Check if we're on Vercel
-        $isVercel = (getenv('VERCEL') !== false || ($_SERVER['VERCEL'] ?? null) === '1');
-        
-        if (!$isVercel) {
-            // Local development - use local storage
-            return $file->store($path, 'public');
-        }
-
-        // Get Vercel Blob credentials
-        $token = env('BLOB_READ_WRITE_TOKEN');
-        $storeId = env('BLOB_STORE_ID');
-
-        if (!$token || !$storeId) {
-            Log::warning('Vercel Blob credentials missing. Falling back to local storage.');
-            return $file->store($path, 'public');
-        }
-
         try {
-            // Generate unique filename
-            $filename = Str::uuid() . '_' . $file->getClientOriginalName();
-            $fullPath = $path . '/' . $filename;
-            
-            // Vercel Blob URL format
-            $url = "https://{$storeId}.blob.vercel-storage.com/{$fullPath}?access=public";
-            
-            // Read file content
-            $fileContent = file_get_contents($file->getRealPath());
-            
-            // Upload to Vercel Blob using HTTP PUT
-            $response = Http::withToken($token)
-                ->withHeader('Content-Type', $file->getMimeType())
-                ->withHeader('Content-Disposition', 'inline; filename="' . $file->getClientOriginalName() . '"')
-                ->put($url, $fileContent);
-            
-            if ($response->successful()) {
-                $result = $response->json();
-                
-                // Return the public URL (Vercel Blob already includes URL in response)
-                return $result['url'] ?? "https://{$storeId}.public.blob.vercel-storage.com/{$fullPath}";
-            } else {
-                Log::error('Vercel Blob upload failed: HTTP ' . $response->status() . ' - ' . $response->body());
-            }
+            $uploaded = cloudinary()->upload($file->getRealPath(), [
+                'folder' => $folder,
+                'resource_type' => 'image',
+            ]);
+            return $uploaded->getSecurePath();
         } catch (\Exception $e) {
-            Log::error('Vercel Blob upload exception: ' . $e->getMessage());
+            Log::error('Cloudinary upload error: ' . $e->getMessage());
+            return null;
         }
-        
-        // Fallback to local storage on any error
-        return $file->store($path, 'public');
     }
 
     /**
-     * Delete file from Vercel Blob storage
-     * 
-     * @param string $url File URL (must be Vercel Blob URL)
-     * @return bool
+     * Hapus file dari Cloudinary berdasarkan URL
      */
-    private function deleteFromVercelBlob($url)
+    private function deleteFromCloudinary($url)
     {
-        if (!filter_var($url, FILTER_VALIDATE_URL)) {
+        if (!$url || !filter_var($url, FILTER_VALIDATE_URL)) {
             return false;
         }
-        
-        if (!str_contains($url, 'blob.vercel-storage.com')) {
-            return false;
-        }
-        
-        $token = env('BLOB_READ_WRITE_TOKEN');
-        if (!$token) {
-            Log::warning('BLOB_READ_WRITE_TOKEN not set. Cannot delete from Vercel Blob.');
-            return false;
-        }
-        
+
         try {
-            // Extract pathname from URL
-            $parsedUrl = parse_url($url);
-            if (!$parsedUrl || !isset($parsedUrl['path'])) {
-                return false;
-            }
-            
-            $pathname = ltrim($parsedUrl['path'], '/');
-            
-            // Vercel Blob delete API
-            $apiUrl = 'https://api.vercel.com/v2/blobs';
-            
-            $response = Http::withToken($token)
-                ->delete($apiUrl, [
-                    'pathname' => $pathname,
-                ]);
-            
-            if ($response->successful()) {
-                Log::info('Deleted from Vercel Blob: ' . $pathname);
+            // Ambil public_id dari URL Cloudinary
+            // Contoh URL: https://res.cloudinary.com/cloud/image/upload/v123/products/filename.jpg
+            $pattern = '/\/upload\/(?:v\d+\/)?(.+)\.[a-zA-Z]+$/';
+            if (preg_match($pattern, $url, $matches)) {
+                $publicId = $matches[1];
+                cloudinary()->destroy($publicId);
+                Log::info('Deleted from Cloudinary: ' . $publicId);
                 return true;
-            } else {
-                Log::error('Vercel Blob delete failed: HTTP ' . $response->status() . ' - ' . $response->body());
-                return false;
             }
         } catch (\Exception $e) {
-            Log::error('Vercel Blob delete exception: ' . $e->getMessage());
-            return false;
+            Log::error('Cloudinary delete error: ' . $e->getMessage());
         }
-    }
 
-    /**
-     * Delete file (local or Vercel Blob)
-     * 
-     * @param string $disk Disk name
-     * @param string $path File path or URL
-     * @return bool
-     */
-    private function deleteStorageFile($disk, $path)
-    {
-        // Check if it's a Vercel Blob URL
-        if (filter_var($path, FILTER_VALIDATE_URL) && str_contains($path, 'blob.vercel-storage.com')) {
-            return $this->deleteFromVercelBlob($path);
-        }
-        
-        // Delete from local disk
-        if (Storage::disk($disk)->exists($path)) {
-            return Storage::disk($disk)->delete($path);
-        }
-        
         return false;
     }
 
@@ -174,29 +75,29 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'craftsman_id' => 'nullable|exists:craftsmen,id',
-            'name' => 'required|string|max:255',
-            'price' => 'required|string|max:255',
-            'category' => 'nullable|string|max:255',
-            'description' => 'required|string',
-            'image' => 'required|image|mimes:jpeg,png,jpg,webp|max:2048',
-            'wa' => 'nullable|string|max:20',
-            'additional_images.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'craftsman_id'          => 'nullable|exists:craftsmen,id',
+            'name'                  => 'required|string|max:255',
+            'price'                 => 'required|string|max:255',
+            'category'              => 'nullable|string|max:255',
+            'description'           => 'required|string',
+            'image'                 => 'required|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'wa'                    => 'nullable|string|max:20',
+            'additional_images.*'   => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
-        // Upload main image with Vercel Blob or fallback
+        // Upload gambar utama ke Cloudinary
         if ($request->hasFile('image')) {
-            $validated['image'] = $this->uploadToVercelBlob($request->file('image'), 'products');
+            $validated['image'] = $this->uploadToCloudinary($request->file('image'), 'products');
         }
 
         $product = Product::create($validated);
 
-        // Upload additional images
+        // Upload gambar tambahan ke Cloudinary
         if ($request->hasFile('additional_images')) {
             foreach ($request->file('additional_images') as $index => $file) {
                 ProductImage::create([
                     'product_id' => $product->id,
-                    'image' => $this->uploadToVercelBlob($file, 'products'),
+                    'image'      => $this->uploadToCloudinary($file, 'products'),
                     'sort_order' => $index,
                 ]);
             }
@@ -209,35 +110,30 @@ class ProductController extends Controller
     public function update(Request $request, Product $product)
     {
         $validated = $request->validate([
-            'craftsman_id' => 'nullable|exists:craftsmen,id',
-            'name' => 'required|string|max:255',
-            'price' => 'required|string|max:255',
-            'category' => 'nullable|string|max:255',
-            'description' => 'required|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
-            'wa' => 'nullable|string|max:20',
-            'additional_images.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'craftsman_id'          => 'nullable|exists:craftsmen,id',
+            'name'                  => 'required|string|max:255',
+            'price'                 => 'required|string|max:255',
+            'category'              => 'nullable|string|max:255',
+            'description'           => 'required|string',
+            'image'                 => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'wa'                    => 'nullable|string|max:20',
+            'additional_images.*'   => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
-        $disk = $this->getDisk();
-        
-        // Delete old main image if replacing
+        // Hapus gambar lama & upload baru ke Cloudinary
         if ($request->hasFile('image')) {
-            $oldImage = $product->getRawOriginal('image');
-            if ($oldImage) {
-                $this->deleteStorageFile($disk, $oldImage);
-            }
-            $validated['image'] = $this->uploadToVercelBlob($request->file('image'), 'products');
+            $this->deleteFromCloudinary($product->getRawOriginal('image'));
+            $validated['image'] = $this->uploadToCloudinary($request->file('image'), 'products');
         }
 
         $product->update($validated);
 
-        // Upload additional images
+        // Upload gambar tambahan
         if ($request->hasFile('additional_images')) {
             foreach ($request->file('additional_images') as $index => $file) {
                 ProductImage::create([
                     'product_id' => $product->id,
-                    'image' => $this->uploadToVercelBlob($file, 'products'),
+                    'image'      => $this->uploadToCloudinary($file, 'products'),
                     'sort_order' => $product->images()->max('sort_order') + $index + 1,
                 ]);
             }
@@ -249,20 +145,12 @@ class ProductController extends Controller
 
     public function destroy(Product $product)
     {
-        $disk = $this->getDisk();
-        
-        // Delete main image
-        $oldImage = $product->getRawOriginal('image');
-        if ($oldImage) {
-            $this->deleteStorageFile($disk, $oldImage);
-        }
+        // Hapus gambar utama dari Cloudinary
+        $this->deleteFromCloudinary($product->getRawOriginal('image'));
 
-        // Delete all additional images
+        // Hapus semua gambar tambahan dari Cloudinary
         foreach ($product->images as $img) {
-            $imgRaw = $img->getRawOriginal('image');
-            if ($imgRaw) {
-                $this->deleteStorageFile($disk, $imgRaw);
-            }
+            $this->deleteFromCloudinary($img->getRawOriginal('image'));
         }
 
         $product->delete();
@@ -277,12 +165,7 @@ class ProductController extends Controller
             abort(403);
         }
 
-        $disk = $this->getDisk();
-        $imgRaw = $image->getRawOriginal('image');
-        if ($imgRaw) {
-            $this->deleteStorageFile($disk, $imgRaw);
-        }
-
+        $this->deleteFromCloudinary($image->getRawOriginal('image'));
         $image->delete();
 
         return back()->with('success', 'Gambar berhasil dihapus.');
